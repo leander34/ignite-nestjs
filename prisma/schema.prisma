@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  INSTRUCTOR
+}
+
+model User {
+  id        String     @id @default(uuid())
+  name      String
+  email     String     @unique
+  password  String
+  questions Question[]
+  answers   Answer[]
+  comments  Comment[]
+
+  role UserRole @default(STUDENT)
+
+  @@map("users")
+}
+
+model Question {
+  id           String    @id @default(uuid())
+  authorId     String    @map("author_id")
+  author       User      @relation(fields: [authorId], references: [id])
+  bestAnswerId String?   @unique @map("best_answer_id")
+  bestAnswer   Answer?   @relation("bestAnswer", fields: [bestAnswerId], references: [id])
+  title        String
+  slug         String    @unique
+  content      String
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime? @updatedAt
+
+  answers     Answer[]
+  comments    Comment[]
+  attachments Attachment[]
+
+  @@map("questions")
+}
+
+model Answer {
+  id         String    @id @default(uuid())
+  authorId   String    @map("author_id")
+  author     User      @relation(fields: [authorId], references: [id])
+  questionId String    @map("question_id")
+  question   Question  @relation(fields: [questionId], references: [id])
+  content    String
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt
+
+  bestAnswerOn Question?    @relation("bestAnswer")
+  comments     Comment[]
+  attachments  Attachment[]
+
+  @@map("answers")
+}
+
+model Comment {
+  id         String    @id @default(uuid())
+  authorId   String    @map("author_id")
+  author     User      @relation(fields: [authorId], references: [id])
+  questionId String?   @map("question_id")
+  question   Question? @relation(fields: [questionId], references: [id])
+  answerId   String?   @map("answer_id")
+  answer     Answer?   @relation(fields: [answerId], references: [id])
+  content    String
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime? @updatedAt
+
+  @@map("comments")
+}
+
+model Attachment {
+  id         String    @id @default(uuid())
+  questionId String?   @map("question_id")
+  question   Question? @relation(fields: [questionId], references: [id])
+  answerId   String?   @map("answer_id")
+  answer     Answer?   @relation(fields: [answerId], references: [id])
+  title      String
+  url        String
+
+  @@map("attachments")
+}

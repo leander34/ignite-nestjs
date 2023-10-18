@@ -1,0 +1,1 @@
+Os mappers são classes responsaveis por converter um entidade em formato de uma camada pro formato de outra camada
